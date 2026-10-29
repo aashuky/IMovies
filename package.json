@@ -1,0 +1,11 @@
+{
+  "name": "imovies",
+  "version": "1.0.0",
+  "description": "iMovies - Premium Cinema Booking Platform",
+  "private": true,
+  "scripts": {
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && node server.js",
+    "start": "node server/server.js"
+  }
+}

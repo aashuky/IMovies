@@ -23,7 +23,7 @@ const paymentSchema = new mongoose.Schema(
 
     method: {
       type: String,
-      enum: ["razorpay", "stripe", "cash"],
+      enum: ["demo", "upi", "card", "netbanking"],
       required: true,
     },
 
@@ -34,7 +34,7 @@ const paymentSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "completed", "failed", "refunded"],
+      enum: ["pending", "success", "failed", "refunded"],
       default: "pending",
     },
 
@@ -50,4 +50,3 @@ const paymentSchema = new mongoose.Schema(
 const Payment = mongoose.model("Payment", paymentSchema);
 
 export default Payment;
-

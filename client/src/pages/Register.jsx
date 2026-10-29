@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -19,8 +20,10 @@ function Register() {
     setLoading(true);
 
     try {
-      await api.post("/auth/register", form);
-      navigate("/login");
+      const response = await api.post("/auth/register", form);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      navigate(location.state?.from?.pathname || "/", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed.");
     } finally {
@@ -31,32 +34,44 @@ function Register() {
   return (
     <div className="container auth-container py-5">
       <form className="auth-card" onSubmit={handleSubmit}>
-        <h2 className="fw-bold mb-2">Create Account</h2>
-        <p className="text-secondary mb-4">Join IMovies today.</p>
+        <p className="hero-eyebrow mb-2">A BETTER WAY TO GO TO THE MOVIES</p>
+        <h1 className="fw-bold mb-2">Create your account</h1>
+        <p className="text-secondary mb-4">
+          Save films, choose your seats and keep every booking in one place.
+        </p>
 
-        {error && <p className="text-danger">{error}</p>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
-        <label className="form-label">Full Name</label>
+        <label className="form-label" htmlFor="register-name">Full name</label>
         <input
+          id="register-name"
           className="form-control mb-3"
+          autoComplete="name"
+          placeholder="Your name"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
         />
 
-        <label className="form-label">Email</label>
+        <label className="form-label" htmlFor="register-email">Email</label>
         <input
+          id="register-email"
           type="email"
           className="form-control mb-3"
+          autoComplete="email"
+          placeholder="you@example.com"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
 
-        <label className="form-label">Password</label>
+        <label className="form-label" htmlFor="register-password">Password</label>
         <input
+          id="register-password"
           type="password"
           className="form-control mb-4"
+          autoComplete="new-password"
+          placeholder="At least 6 characters"
           minLength={6}
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -68,7 +83,7 @@ function Register() {
         </button>
 
         <p className="mt-3 mb-0 text-center">
-          Already registered? <Link to="/login">Login</Link>
+          Already registered? <Link to="/login" state={location.state}>Login</Link>
         </p>
       </form>
     </div>

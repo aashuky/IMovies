@@ -29,6 +29,11 @@ const movieSchema = new mongoose.Schema(
     poster: {
       type: String,
     },
+    trailerUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     rating: {
       type: Number,
       min: 0,

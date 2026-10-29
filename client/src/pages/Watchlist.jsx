@@ -8,28 +8,35 @@ function Watchlist() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchWatchlist = async () => {
-    try {
-      const response = await api.get("/watchlist");
-      const items = response.data.watchlist || [];
-
-      setMovies(
-        items
-          .map((item) => item.movieId)
-          .filter((movie) => movie && movie._id)
-      );
-    } catch (err) {
-      setError(err.response?.data?.message || "Could not load watchlist.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchWatchlist();
+    let active = true;
+    api.get("/watchlist")
+      .then((response) => {
+        if (!active) return;
+        const items = response.data.watchlist || [];
+        setMovies(
+          items
+            .map((item) => item.movieId)
+            .filter((movie) => movie && movie._id)
+        );
+      })
+      .catch((requestError) => {
+        if (active) {
+          setError(
+            requestError.response?.data?.message || "Could not load watchlist."
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const removeMovie = async (movieId) => {
+    setError("");
     try {
       await api.delete(`/watchlist/${movieId}`);
       setMovies((current) => current.filter((movie) => movie._id !== movieId));

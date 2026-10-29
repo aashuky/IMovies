@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/");
+      navigate(location.state?.from?.pathname || "/", { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
     } finally {
@@ -32,35 +33,44 @@ function Login() {
   return (
     <div className="container auth-container py-5">
       <form className="auth-card" onSubmit={handleSubmit}>
-        <h2 className="fw-bold mb-2">Welcome Back</h2>
-        <p className="text-secondary mb-4">Login to your IMovies account.</p>
+        <p className="hero-eyebrow mb-2">YOUR NEXT MOVIE NIGHT STARTS HERE</p>
+        <h1 className="fw-bold mb-2">Welcome back</h1>
+        <p className="text-secondary mb-4">
+          Sign in to book seats and keep your watchlist close.
+        </p>
 
-        {error && <p className="text-danger">{error}</p>}
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
-        <label className="form-label">Email</label>
+        <label className="form-label" htmlFor="login-email">Email</label>
         <input
+          id="login-email"
           type="email"
           className="form-control mb-3"
+          autoComplete="email"
+          placeholder="you@example.com"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
           required
         />
 
-        <label className="form-label">Password</label>
+        <label className="form-label" htmlFor="login-password">Password</label>
         <input
+          id="login-password"
           type="password"
           className="form-control mb-4"
+          autoComplete="current-password"
+          placeholder="Enter your password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           required
         />
 
         <button className="btn btn-danger w-100" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+          {loading ? "Signing you in..." : "Sign in"}
         </button>
 
         <p className="mt-3 mb-0 text-center">
-          Don't have an account? <Link to="/register">Register</Link>
+          Don't have an account? <Link to="/register" state={location.state}>Register</Link>
         </p>
       </form>
     </div>

@@ -1,7 +1,7 @@
 
 function Footer() {
   return (
-    <footer className="bg-dark text-secondary text-center py-4 mt-5">
+    <footer className="site-footer text-center">
       <p className="mb-1">
         © {new Date().getFullYear()} IMovies
       </p>

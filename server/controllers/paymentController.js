@@ -1,15 +1,25 @@
-import mongoose from "mongoose";
-import Payment from "../models/payment.model.js";
-import Booking from "../models/booking.model.js";
 
-export const createPayment = async (req, res) => {
+import mongoose from "mongoose";
+import Booking from "../models/booking.model.js";
+import Payment from "../models/payment.model.js";
+import SeatReservation from "../models/seatReservation.model.js";
+
+export const payForBookingDemo = async (req, res) => {
   try {
-    const { bookingId, method } = req.body;
+    const { bookingId } = req.params;
+    const { method = "demo" } = req.body;
 
     if (!mongoose.isValidObjectId(bookingId)) {
       return res.status(400).json({
         success: false,
-        message: "Valid bookingId is required",
+        message: "Invalid booking ID.",
+      });
+    }
+
+    if (!["demo", "upi", "card", "netbanking"].includes(method)) {
+      return res.status(400).json({
+        success: false,
+        message: "Unsupported payment method.",
       });
     }
 
@@ -18,60 +28,76 @@ export const createPayment = async (req, res) => {
       userId: req.user._id,
     });
 
-    if (!booking || booking.status !== "confirmed") {
+    if (!booking) {
       return res.status(404).json({
         success: false,
-        message: "Valid confirmed booking not found",
+        message: "Booking not found.",
       });
     }
 
     if (booking.paymentStatus === "paid") {
       return res.status(409).json({
         success: false,
-        message: "Booking is already paid",
+        message: "This booking has already been paid.",
       });
     }
 
+    if (booking.status === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: "This booking has been cancelled.",
+      });
+    }
+
+    const reservations = await SeatReservation.find({
+      bookingId: booking._id,
+      userId: req.user._id,
+      status: "pending",
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (
+      reservations.length !== booking.seats.length ||
+      booking.paymentStatus !== "pending"
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "Seat reservation expired. Please select seats again.",
+      });
+    }
+
+    // DEMO ONLY: this does not charge money or contact a payment gateway.
     const payment = await Payment.create({
       bookingId: booking._id,
       userId: req.user._id,
       amount: booking.totalAmount,
-      method: method || "demo",
-      status: "pending",
+      method,
+      transactionId: `DEMO-${new mongoose.Types.ObjectId().toString()}`,
+      status: "success",
+      paidAt: new Date(),
     });
 
-    return res.status(201).json({
+    booking.paymentStatus = "paid";
+    booking.status = "confirmed";
+    await booking.save();
+
+    await SeatReservation.updateMany(
+      { bookingId: booking._id, userId: req.user._id },
+      { $set: { status: "confirmed" }, $unset: { expiresAt: 1 } }
+    );
+
+    return res.json({
       success: true,
-      message: "Payment record created; payment is pending",
+      message: "Demo payment successful. Booking confirmed.",
       payment,
+      booking,
     });
   } catch (error) {
-    console.error("Create payment error:", error);
+    console.error("Demo payment error:", error.message);
+
     return res.status(500).json({
       success: false,
-      message: "Could not create payment",
-    });
-  }
-};
-
-export const getMyPayments = async (req, res) => {
-  try {
-    const payments = await Payment.find({
-      userId: req.user._id,
-    })
-      .populate("bookingId")
-      .sort({ createdAt: -1 });
-
-    return res.status(200).json({
-      success: true,
-      count: payments.length,
-      payments,
-    });
-  } catch (error) {
-    console.error("Get payments error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Could not fetch payments",
+      message: "Could not process demo payment.",
     });
   }
 };

@@ -65,6 +65,7 @@ export const createMovie = async (req, res) => {
       releaseDate,
       description,
       poster,
+      trailerUrl,
       rating,
     } = req.body;
 
@@ -76,6 +77,7 @@ export const createMovie = async (req, res) => {
       releaseDate,
       description,
       poster,
+      trailerUrl,
       rating,
     });
 

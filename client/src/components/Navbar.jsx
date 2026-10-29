@@ -1,61 +1,79 @@
-
+import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-const user = JSON.parse(localStorage.getItem("user") || "null");
+  const [menuOpen, setMenuOpen] = useState(false);
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    localStorage.removeItem("user");
+  }
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    setMenuOpen(false);
     navigate("/login");
   };
 
-  return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-4">
-      <Link className="navbar-brand fw-bold text-danger" to="/">
-        IMovies
-      </Link>
+  const closeMenu = () => setMenuOpen(false);
 
+  return (
+    <nav className="navbar navbar-expand-lg navbar-dark site-navbar px-3 px-lg-5">
+      <Link className="navbar-brand" to="/">
+        <span className="brand-mark">I</span>Movies
+      </Link>
       <button
         className="navbar-toggler"
         type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#navbarMenu"
+        aria-expanded={menuOpen}
+        aria-controls="navbarMenu"
         aria-label="Toggle navigation"
+        onClick={() => setMenuOpen((open) => !open)}
       >
         <span className="navbar-toggler-icon"></span>
       </button>
 
-      <div className="collapse navbar-collapse" id="navbarMenu">
+      <div className={`navbar-collapse ${menuOpen ? "show" : ""}`} id="navbarMenu">
         <div className="navbar-nav ms-auto align-items-lg-center gap-lg-3">
-          <NavLink className="nav-link" to="/">
+          <NavLink className="nav-link" to={token ? "/home" : "/"} onClick={closeMenu}>
             Home
           </NavLink>
 
-          <NavLink className="nav-link" to="/movies">
+          <NavLink className="nav-link" to="/movies" onClick={closeMenu}>
             Movies
+          </NavLink>
+
+          <NavLink className="nav-link" to="/theaters" onClick={closeMenu}>
+            Theaters & Food
           </NavLink>
 
           {token && (
             <>
-              <NavLink className="nav-link" to="/bookings">
+              <NavLink className="nav-link" to="/bookings" onClick={closeMenu}>
                 My Bookings
               </NavLink>
 
-              <NavLink className="nav-link" to="/watchlist">
+              <NavLink className="nav-link" to="/orders" onClick={closeMenu}>
+                My Orders
+              </NavLink>
+
+              <NavLink className="nav-link" to="/watchlist" onClick={closeMenu}>
                 Watchlist
               </NavLink>
-{user?.role === "admin" && (
-  <NavLink className="nav-link" to="/admin">
-    Admin Dashboard
-  </NavLink>
-)}
-              <button
-                className="btn btn-outline-light btn-sm"
-                onClick={logout}
-              >
+              <NavLink className="nav-link" to="/profile" onClick={closeMenu}>
+                Profile & settings
+              </NavLink>
+              {user?.role === "admin" && (
+                <NavLink className="nav-link" to="/admin" onClick={closeMenu}>
+                  Admin Dashboard
+                </NavLink>
+              )}
+              <button className="btn btn-outline-light btn-sm" onClick={logout}>
                 Logout
               </button>
             </>
@@ -63,11 +81,11 @@ const user = JSON.parse(localStorage.getItem("user") || "null");
 
           {!token && (
             <>
-              <NavLink className="nav-link" to="/login">
+              <NavLink className="nav-link" to="/login" onClick={closeMenu}>
                 Login
               </NavLink>
 
-              <Link className="btn btn-danger btn-sm" to="/register">
+              <Link className="btn btn-danger btn-sm" to="/register" onClick={closeMenu}>
                 Sign Up
               </Link>
             </>

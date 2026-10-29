@@ -1,16 +1,32 @@
-# React + Vite
+# IMovies client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The client uses React, Vite, and React Router. Start the API from `server/` and
+the frontend from `client/`:
 
-Currently, two official plugins are available:
+```powershell
+cd server
+npm install
+npm run dev
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+In another terminal:
 
-## React Compiler
+```powershell
+cd client
+npm install
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The API base URL defaults to `http://localhost:8000/api`, matching the local
+server configuration. Override it with `VITE_API_BASE_URL` when the API runs
+elsewhere (for example, `http://localhost:5000/api` when using the server's
+default port).
 
-## Expanding the ESLint configuration
+To add the local sample catalog (and safely fill it to at least 200 movies),
+run `npm run seed` from `server/`. The extra sample listings are identified in
+their titles and descriptions; replace them with verified catalog entries
+before production.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Seat checkout currently uses the server's demo payment endpoint. It confirms
+the booking without charging a card or contacting a payment provider. Its QR
+code is an order-information demo, not a UPI or bank payment QR.

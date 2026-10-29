@@ -1,34 +1,51 @@
 
 import { Link } from "react-router-dom";
+import { fallbackPoster, handlePosterError } from "../services/poster";
 
 function MovieCard({ movie }) {
+  const genres = Array.isArray(movie.genre)
+    ? movie.genre.join(" · ")
+    : movie.genre || movie.language || "Movie";
+
   return (
-    <div className="card movie-card h-100 bg-dark text-white border-secondary">
-      <img
-        src={movie.poster || "https://placehold.co/300x450?text=IMovies"}
-        className="card-img-top movie-poster"
-        alt={movie.title}
-      />
+    <article className="movie-card">
+      <Link
+        to={`/movies/${movie._id}`}
+        aria-label={`View ${movie.title} details`}
+      >
+        <div className="movie-poster-wrap">
+          <img
+            src={movie.poster || fallbackPoster(movie.title)}
+            className="movie-poster"
+            alt={movie.title}
+            loading="lazy"
+            onError={(event) => handlePosterError(event, movie.title)}
+          />
 
-      <div className="card-body d-flex flex-column">
-        <h5 className="card-title">{movie.title}</h5>
+          <div className="poster-overlay">
+            <span className="btn-premium w-100 text-center">
+              View Details
+            </span>
+          </div>
+        </div>
+      </Link>
 
-        <p className="text-secondary mb-2">
-          {movie.language || "Language unavailable"}
-        </p>
+      <div className="movie-card-body">
+        <h3 className="movie-card-title" title={movie.title}>
+          {movie.title}
+        </h3>
 
-        <p className="mb-3">
-          Rating: {movie.rating ?? "Not rated"}
-        </p>
+        <div className="d-flex justify-content-between align-items-center gap-2">
+          <span className="movie-card-meta text-truncate">{genres}</span>
 
-        <Link
-          to={`/movies/${movie._id}`}
-          className="btn btn-danger mt-auto"
-        >
-          View Details
-        </Link>
+          {Number(movie.rating) > 0 && (
+            <span className="movie-rating">
+              ★ {Number(movie.rating).toFixed(1)}
+            </span>
+          )}
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 

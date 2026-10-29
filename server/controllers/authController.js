@@ -157,3 +157,104 @@ export const getMe = async (req, res) => {
   });
 };
 
+export const updateMe = async (req, res) => {
+  try {
+    const { name, email, currentPassword, newPassword } = req.body;
+    const hasProfileChange = name !== undefined || email !== undefined;
+    const hasPasswordChange = Boolean(newPassword);
+
+    if (!hasProfileChange && !hasPasswordChange) {
+      return res.status(400).json({
+        success: false,
+        message: "Provide a profile or password change.",
+      });
+    }
+
+    const updates = {};
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim().length < 2) {
+        return res.status(400).json({
+          success: false,
+          message: "Name must contain at least 2 characters.",
+        });
+      }
+      updates.name = name.trim();
+    }
+
+    if (email !== undefined) {
+      if (typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        return res.status(400).json({
+          success: false,
+          message: "Enter a valid email address.",
+        });
+      }
+      const normalizedEmail = email.trim().toLowerCase();
+      const existingUser = await User.findOne({
+        email: normalizedEmail,
+        _id: { $ne: req.user._id },
+      });
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          message: "Email is already in use.",
+        });
+      }
+      updates.email = normalizedEmail;
+    }
+
+    if (hasPasswordChange) {
+      if (typeof currentPassword !== "string" || !currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Enter your current password to set a new password.",
+        });
+      }
+      if (typeof newPassword !== "string" || newPassword.length < 6) {
+        return res.status(400).json({
+          success: false,
+          message: "New password must contain at least 6 characters.",
+        });
+      }
+      const userWithPassword = await User.findById(req.user._id);
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        userWithPassword.password
+      );
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          success: false,
+          message: "Your current password is incorrect.",
+        });
+      }
+      updates.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully.",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Email is already in use.",
+      });
+    }
+    console.error("Update profile error:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Could not update your profile.",
+    });
+  }
+};

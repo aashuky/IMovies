@@ -1,13 +1,10 @@
+
 import express from "express";
-import {
-  createPayment,
-  getMyPayments,
-} from "../controllers/paymentController.js";
 import { protect } from "../middleware/authMiddleware.js";
+import { payForBookingDemo } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
-router.post("/", protect, createPayment);
-router.get("/my", protect, getMyPayments);
+router.post("/demo/:bookingId", protect, payForBookingDemo);
 
 export default router;
