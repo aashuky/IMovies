@@ -21,9 +21,16 @@ function Register() {
 
     try {
       const response = await api.post("/auth/register", form);
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      navigate(location.state?.from?.pathname || "/", { replace: true });
+      const { token, user } = response.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      const defaultRoute = user.role === "admin" ? "/admin" : "/home";
+      const requestedRoute = location.state?.from?.pathname;
+      const destination = requestedRoute === "/admin" && user.role !== "admin"
+        ? defaultRoute
+        : requestedRoute || defaultRoute;
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed.");
     } finally {

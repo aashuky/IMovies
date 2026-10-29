@@ -22,7 +22,12 @@ function Login() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate(location.state?.from?.pathname || "/", { replace: true });
+      const defaultRoute = data.user.role === "admin" ? "/admin" : "/home";
+      const requestedRoute = location.state?.from?.pathname;
+      const destination = requestedRoute === "/admin" && data.user.role !== "admin"
+        ? defaultRoute
+        : requestedRoute || defaultRoute;
+      navigate(destination, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Login failed.");
     } finally {

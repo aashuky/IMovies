@@ -1,10 +1,16 @@
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 function Welcome() {
-  const navigate = useNavigate();
+  let user = null;
+
+  try {
+    user = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    localStorage.removeItem("user");
+  }
 
   if (localStorage.getItem("token")) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to={user?.role === "admin" ? "/admin" : "/home"} replace />;
   }
 
   return (
@@ -19,12 +25,12 @@ function Welcome() {
             Discover new releases, choose the perfect theatre, and reserve your favourite seats in a few simple steps.
           </p>
           <div className="welcome-actions">
-            <button type="button" className="btn btn-premium" onClick={() => navigate("/login")}>
+            <Link to="/login" className="btn btn-premium">
               Sign in <span aria-hidden="true">→</span>
-            </button>
-            <button type="button" className="btn btn-glass" onClick={() => navigate("/register")}>
+            </Link>
+            <Link to="/register" className="btn btn-glass">
               Create an account
-            </button>
+            </Link>
           </div>
           <p className="welcome-note">New here? Signing up takes less than a minute.</p>
         </div>
